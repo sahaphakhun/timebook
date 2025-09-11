@@ -2,6 +2,9 @@
 import useSWR from 'swr'
 import { fetcher } from '@/lib/fetcher'
 import { useState } from 'react'
+import { Card, CardHeader, CardFooter } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 type Availability = { id: string; weekday: number; startTime: string; endTime: string }
 
@@ -20,25 +23,27 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Availability</h1>
+    <Card>
+      <CardHeader>Availability</CardHeader>
       <div className="flex gap-2 items-center">
-        <select value={form.weekday} onChange={e => setForm({ ...form, weekday: Number(e.target.value) })} className="border px-2 py-1 rounded">
+        <select value={form.weekday} onChange={e => setForm({ ...form, weekday: Number(e.target.value) })} className="border px-2 py-2 rounded">
           {[0,1,2,3,4,5,6].map(d => <option key={d} value={d}>{d}</option>)}
         </select>
-        <input value={form.startTime} onChange={e => setForm({ ...form, startTime: e.target.value })} className="border px-2 py-1 rounded" />
-        <input value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} className="border px-2 py-1 rounded" />
-        <button onClick={addItem} className="bg-blue-600 text-white px-3 py-1 rounded">Add</button>
+        <Input value={form.startTime} onChange={e => setForm({ ...form, startTime: e.target.value })} />
+        <Input value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} />
+        <Button onClick={addItem}>Add</Button>
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-2 mt-4">
         {(data ?? []).map(a => (
           <li key={a.id} className="flex justify-between border rounded px-3 py-2">
             <span>Day {a.weekday}: {a.startTime}-{a.endTime}</span>
-            <button onClick={() => remove(a.id)} className="text-red-600">Delete</button>
+            <Button variant="danger" onClick={() => remove(a.id)}>Delete</Button>
           </li>
         ))}
+        {(data?.length ?? 0) === 0 && <p className="text-sm text-gray-500">No availability yet.</p>}
       </ul>
-    </div>
+      <CardFooter />
+    </Card>
   )
 }
 

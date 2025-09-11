@@ -2,6 +2,9 @@
 import useSWR from 'swr'
 import { fetcher } from '@/lib/fetcher'
 import { useState } from 'react'
+import { Card, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 type Role = 'ADMIN' | 'TEACHER' | 'STUDENT'
 type User = { id: string; email: string; name?: string | null; role: Role }
@@ -22,25 +25,26 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Users</h1>
+    <Card>
+      <CardHeader>Users</CardHeader>
       <div className="grid grid-cols-5 gap-2 items-center">
-        <input placeholder="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="border px-2 py-1 rounded" />
-        <input placeholder="name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="border px-2 py-1 rounded" />
-        <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as Role })} className="border px-2 py-1 rounded">
+        <Input placeholder="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+        <Input placeholder="name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+        <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as Role })} className="border px-2 py-2 rounded">
           {(['ADMIN','TEACHER','STUDENT'] as Role[]).map(r => <option key={r} value={r}>{r}</option>)}
         </select>
-        <button onClick={createUser} className="bg-blue-600 text-white px-3 py-1 rounded col-span-1">Add</button>
+        <Button onClick={createUser} className="col-span-1">Add</Button>
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-2 mt-4">
         {(data ?? []).map(u => (
           <li key={u.id} className="flex justify-between border rounded px-3 py-2">
             <span>{u.email} — {u.role}</span>
-            <button onClick={() => removeUser(u.id)} className="text-red-600">Delete</button>
+            <Button variant="danger" onClick={() => removeUser(u.id)}>Delete</Button>
           </li>
         ))}
+        {(data?.length ?? 0) === 0 && <p className="text-sm text-gray-500">No users yet.</p>}
       </ul>
-    </div>
+    </Card>
   )
 }
 

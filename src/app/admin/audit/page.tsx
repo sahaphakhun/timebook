@@ -1,14 +1,15 @@
 "use client"
 import useSWR from 'swr'
 import { fetcher } from '@/lib/fetcher'
+import { Card, CardHeader } from '@/components/ui/card'
 
 type Item = { id: string; action: string; createdAt: string; user?: { email: string } | null; meta?: unknown }
 
 export default function AdminAuditPage() {
   const { data } = useSWR<Item[]>("/api/admin/audit?take=100", fetcher)
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Audit Log</h1>
+    <Card>
+      <CardHeader>Audit Log</CardHeader>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left border-b">
@@ -27,9 +28,12 @@ export default function AdminAuditPage() {
               <td><pre className="whitespace-pre-wrap">{JSON.stringify(row.meta)}</pre></td>
             </tr>
           ))}
+          {(data?.length ?? 0) === 0 && (
+            <tr><td colSpan={4} className="py-3 text-sm text-gray-500">No logs.</td></tr>
+          )}
         </tbody>
       </table>
-    </div>
+    </Card>
   )
 }
 

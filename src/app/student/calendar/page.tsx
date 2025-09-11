@@ -4,6 +4,7 @@ import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { fetcher } from '@/lib/fetcher'
+import { Card, CardHeader } from '@/components/ui/card'
 
 type Slot = {
   id: string
@@ -14,14 +15,17 @@ type Slot = {
 }
 
 export default function CalendarPage() {
-  const { data: slots } = useSWR<Slot[]>("/api/timeslots", fetcher)
+  const { data: slots, isLoading, error } = useSWR<Slot[]>("/api/timeslots", fetcher)
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Calendar</h1>
+    <Card>
+      <CardHeader>Student Calendar</CardHeader>
+      {isLoading && <p className="text-sm text-gray-500">Loading...</p>}
+      {error && <p className="text-sm text-red-600">Failed to load</p>}
       <FullCalendar
         plugins={[timeGridPlugin, interactionPlugin]}
         initialView="timeGridWeek"
+        height={700}
         events={(slots ?? []).map(s => ({
           id: s.id,
           title: s.course.title,
@@ -30,7 +34,7 @@ export default function CalendarPage() {
           backgroundColor: s.available ? '#4ade80' : '#94a3b8'
         }))}
       />
-    </div>
+    </Card>
   )
 }
 
