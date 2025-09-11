@@ -13,9 +13,12 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (session?.user?.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  const { email, name, role } = await req.json()
+  const { email, name, password, role } = await req.json()
   if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 })
-  const user = await prisma.user.create({ data: { email, name, role } })
+  if (!password) return NextResponse.json({ error: 'password required' }, { status: 400 })
+  const { hash } = await import('bcryptjs')
+  const hashedPassword = await hash(password, 10)
+  const user = await prisma.user.create({ data: { email, name, hashedPassword, role } })
   await prisma.auditLog.create({ data: { action: 'USER_CREATE', userId: session.user.id, meta: { id: user.id } } })
   return NextResponse.json(user, { status: 201 })
 }

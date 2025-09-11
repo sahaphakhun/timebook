@@ -11,11 +11,11 @@ type User = { id: string; email: string; name?: string | null; role: Role }
 
 export default function AdminUsersPage() {
   const { data, mutate } = useSWR<User[]>("/api/admin/users", fetcher)
-  const [form, setForm] = useState({ email: '', name: '', role: 'STUDENT' as Role })
+  const [form, setForm] = useState({ email: '', name: '', password: '', role: 'STUDENT' as Role })
 
   async function createUser() {
     await fetch('/api/admin/users', { method: 'POST', body: JSON.stringify(form) })
-    setForm({ email: '', name: '', role: 'STUDENT' })
+    setForm({ email: '', name: '', password: '', role: 'STUDENT' })
     mutate()
   }
 
@@ -27,9 +27,10 @@ export default function AdminUsersPage() {
   return (
     <Card>
       <CardHeader>Users</CardHeader>
-      <div className="grid grid-cols-5 gap-2 items-center">
+      <div className="grid grid-cols-6 gap-2 items-center">
         <Input placeholder="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
         <Input placeholder="name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+        <Input type="password" placeholder="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
         <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as Role })} className="border px-2 py-2 rounded">
           {(['ADMIN','TEACHER','STUDENT'] as Role[]).map(r => <option key={r} value={r}>{r}</option>)}
         </select>
