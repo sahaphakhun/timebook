@@ -2,7 +2,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import NextAuth, { type NextAuthOptions } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/db'
-import { compare } from 'bcryptjs'
+import { compare, hash } from 'bcryptjs'
 import type { Role } from '@prisma/client'
 import type { JWT } from 'next-auth/jwt'
 
@@ -22,11 +22,22 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
-        if (!user || !user.hashedPassword) return null
-        const valid = await compare(credentials.password, user.hashedPassword)
+        const existing = await prisma.user.findUnique({ where: { email: credentials.email } })
+        if (!existing) {
+          const total = await prisma.user.count()
+          if (total === 0) {
+            const hashed = await hash(credentials.password, 10)
+            const created = await prisma.user.create({
+              data: { email: credentials.email, name: null, hashedPassword: hashed, role: 'ADMIN' }
+            })
+            return { id: created.id, email: created.email, name: created.name, role: created.role }
+          }
+          return null
+        }
+        if (!existing.hashedPassword) return null
+        const valid = await compare(credentials.password, existing.hashedPassword)
         if (!valid) return null
-        return { id: user.id, email: user.email, name: user.name, role: user.role }
+        return { id: existing.id, email: existing.email, name: existing.name, role: existing.role }
       }
     })
   ],
