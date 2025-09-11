@@ -20,7 +20,7 @@ export async function middleware(req: NextRequest) {
   // Require auth for app paths below
   if (!token) {
     const url = req.nextUrl.clone()
-    url.pathname = '/api/auth/signin'
+    url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
