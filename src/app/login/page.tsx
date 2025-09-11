@@ -28,7 +28,7 @@ export default function LoginPage() {
       } else {
         window.location.href = '/'
       }
-    } catch (err) {
+    } catch {
       setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')
     } finally {
       setIsLoading(false)

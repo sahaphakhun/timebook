@@ -108,11 +108,11 @@ export default function TeacherHome() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full">
-                <Link href={feature.href}>
+              <Link href={feature.href} className="w-full">
+                <Button className="w-full">
                   ไปยัง {feature.title}
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         ))}
@@ -145,24 +145,24 @@ export default function TeacherHome() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" asChild>
-              <Link href="/teacher/availability">
+            <Link href="/teacher/availability">
+              <Button variant="outline">
                 <span className="mr-2">⏰</span>
                 ตั้งค่าความพร้อมสอน
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/teacher/courses">
+              </Button>
+            </Link>
+            <Link href="/teacher/courses">
+              <Button variant="outline">
                 <span className="mr-2">📚</span>
                 จัดการคอร์สเรียน
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/teacher/timeslots">
+              </Button>
+            </Link>
+            <Link href="/teacher/timeslots">
+              <Button variant="outline">
                 <span className="mr-2">📅</span>
                 ดูตารางเวลา
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

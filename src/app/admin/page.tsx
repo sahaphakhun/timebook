@@ -108,11 +108,11 @@ export default function AdminHome() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full">
-                <Link href={feature.href}>
+              <Link href={feature.href} className="w-full">
+                <Button className="w-full">
                   ไปยัง {feature.title}
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         ))}
@@ -128,24 +128,24 @@ export default function AdminHome() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" asChild>
-              <Link href="/admin/users">
+            <Link href="/admin/users">
+              <Button variant="outline">
                 <span className="mr-2">👥</span>
                 จัดการผู้ใช้
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/audit">
+              </Button>
+            </Link>
+            <Link href="/admin/audit">
+              <Button variant="outline">
                 <span className="mr-2">📋</span>
                 ดูบันทึกการใช้งาน
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <a href="/api/report/bookings" download>
+              </Button>
+            </Link>
+            <a href="/api/report/bookings" download>
+              <Button variant="outline">
                 <span className="mr-2">📊</span>
                 ดาวน์โหลดรายงาน
-              </a>
-            </Button>
+              </Button>
+            </a>
           </div>
         </CardContent>
       </Card>

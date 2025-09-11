@@ -145,7 +145,7 @@ export default function AdminAuditPage() {
                       <span className="text-sm text-muted-foreground">
                         {row.user?.email || 'ไม่ระบุผู้ใช้'}
                       </span>
-                      {row.meta && (
+                      {row.meta != null && (
                         <button
                           onClick={() => toggleRow(row.id)}
                           className="text-xs px-2 py-1 bg-muted rounded hover:bg-muted/80 transition-colors"
@@ -156,7 +156,7 @@ export default function AdminAuditPage() {
                     </div>
                   </div>
                   
-                  {expandedRows.has(row.id) && row.meta && (
+                  {expandedRows.has(row.id) && row.meta != null && (
                     <div className="mt-3 p-3 bg-muted/30 rounded border">
                       <p className="text-xs font-medium text-muted-foreground mb-2">รายละเอียด:</p>
                       <pre className="text-xs whitespace-pre-wrap overflow-x-auto">
