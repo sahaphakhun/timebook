@@ -6,26 +6,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-type Course = { id: string; title: string }
-type Timeslot = { id: string; courseId: string; course: Course; dateTimeStart: string; dateTimeEnd: string; maxSeat: number }
+type Timeslot = { 
+  id: string
+  teacherId: string
+  dateTimeStart: string
+  dateTimeEnd: string
+  isAvailable: boolean
+  teacher: {
+    id: string
+    name: string
+  }
+  bookings: Array<{
+    id: string
+    studentId: string
+    status: string
+  }>
+}
 
 export default function TimeslotsPage() {
-  const { data: timeslots, mutate, isLoading: timeslotsLoading } = useSWR<Timeslot[]>("/api/teacher/timeslots", fetcher)
-  const { data: courses } = useSWR<Course[]>("/api/teacher/courses", fetcher)
-  const [form, setForm] = useState({ courseId: '', dateTimeStart: '', dateTimeEnd: '', maxSeat: 1 })
+  const { data: timeslots, mutate, isLoading: timeslotsLoading } = useSWR<Timeslot[]>("/api/timeslots", fetcher)
+  const [form, setForm] = useState({ dateTimeStart: '', dateTimeEnd: '' })
   const [isCreating, setIsCreating] = useState(false)
 
   async function createTs() {
-    if (!form.courseId || !form.dateTimeStart || !form.dateTimeEnd) return
+    if (!form.dateTimeStart || !form.dateTimeEnd) return
     
     setIsCreating(true)
     try {
-      await fetch('/api/teacher/timeslots', { 
+      await fetch('/api/timeslots', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form) 
       })
-      setForm({ courseId: '', dateTimeStart: '', dateTimeEnd: '', maxSeat: 1 })
+      setForm({ dateTimeStart: '', dateTimeEnd: '' })
       mutate()
     } catch (error) {
       console.error('Error creating timeslot:', error)
@@ -35,10 +48,10 @@ export default function TimeslotsPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm('คุณแน่ใจหรือไม่ที่จะลบคาบเรียนนี้?')) return
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะลบเวลาสอนนี้?')) return
     
     try {
-      await fetch(`/api/teacher/timeslots?id=${id}`, { method: 'DELETE' })
+      await fetch(`/api/timeslots/${id}`, { method: 'DELETE' })
       mutate()
     } catch (error) {
       console.error('Error removing timeslot:', error)
@@ -55,8 +68,8 @@ export default function TimeslotsPage() {
     })
   }
 
-  const getCourseTitle = (courseId: string) => {
-    return courses?.find(c => c.id === courseId)?.title || 'ไม่ระบุคอร์ส'
+  const getBookingCount = (timeslot: Timeslot) => {
+    return timeslot.bookings.length
   }
 
   const upcomingTimeslots = timeslots?.filter(t => new Date(t.dateTimeStart) > new Date()) || []
@@ -66,39 +79,22 @@ export default function TimeslotsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">ตารางเวลา</h1>
+        <h1 className="text-3xl font-bold tracking-tight">เวลาสอน</h1>
         <p className="text-muted-foreground">
-          จัดการตารางเวลาการสอน
+          จัดการเวลาที่สะดวกสอน
         </p>
       </div>
 
       {/* Add Timeslot Form */}
       <Card>
         <CardHeader>
-          <CardTitle>เพิ่มคาบเรียนใหม่</CardTitle>
+          <CardTitle>เพิ่มเวลาสอนใหม่</CardTitle>
           <CardDescription>
-            สร้างคาบเรียนใหม่สำหรับการสอน
+            กำหนดเวลาที่สะดวกสอน
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">คอร์สเรียน</label>
-              <select 
-                value={form.courseId} 
-                onChange={e => setForm({ ...form, courseId: e.target.value })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                required
-              >
-                <option value="">เลือกคอร์สเรียน</option>
-                {courses?.map(course => (
-                  <option key={course.id} value={course.id}>
-                    {course.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="text-sm font-medium">วันที่และเวลาเริ่ม</label>
               <Input 
@@ -120,21 +116,10 @@ export default function TimeslotsPage() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">จำนวนที่นั่งสูงสุด</label>
-              <Input 
-                type="number" 
-                value={form.maxSeat} 
-                onChange={e => setForm({ ...form, maxSeat: Number(e.target.value) })}
-                min="1"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
               <label className="text-sm font-medium opacity-0">เพิ่ม</label>
               <Button 
                 onClick={createTs} 
-                disabled={isCreating || !form.courseId || !form.dateTimeStart || !form.dateTimeEnd}
+                disabled={isCreating || !form.dateTimeStart || !form.dateTimeEnd}
                 className="w-full"
               >
                 {isCreating ? (
@@ -143,7 +128,7 @@ export default function TimeslotsPage() {
                     กำลังสร้าง...
                   </div>
                 ) : (
-                  'สร้างคาบเรียน'
+                  'เพิ่มเวลาสอน'
                 )}
               </Button>
             </div>
@@ -155,39 +140,39 @@ export default function TimeslotsPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">คาบเรียนทั้งหมด</CardTitle>
+            <CardTitle className="text-sm font-medium">เวลาสอนทั้งหมด</CardTitle>
             <span className="text-2xl">📅</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{timeslots?.length || 0}</div>
             <p className="text-xs text-muted-foreground">
-              คาบเรียนทั้งหมด
+              เวลาสอนทั้งหมด
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">คาบเรียนที่กำลังจะมาถึง</CardTitle>
+            <CardTitle className="text-sm font-medium">เวลาที่กำลังจะมาถึง</CardTitle>
             <span className="text-2xl">⏰</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{upcomingTimeslots.length}</div>
             <p className="text-xs text-muted-foreground">
-              คาบเรียนที่ยังไม่เริ่ม
+              เวลาที่ยังไม่เริ่ม
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">คาบเรียนที่ผ่านไปแล้ว</CardTitle>
+            <CardTitle className="text-sm font-medium">เวลาที่ผ่านไปแล้ว</CardTitle>
             <span className="text-2xl">✅</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{pastTimeslots.length}</div>
             <p className="text-xs text-muted-foreground">
-              คาบเรียนที่เสร็จสิ้นแล้ว
+              เวลาที่เสร็จสิ้นแล้ว
             </p>
           </CardContent>
         </Card>
@@ -196,9 +181,9 @@ export default function TimeslotsPage() {
       {/* Upcoming Timeslots */}
       <Card>
         <CardHeader>
-          <CardTitle>คาบเรียนที่กำลังจะมาถึง</CardTitle>
+          <CardTitle>เวลาสอนที่กำลังจะมาถึง</CardTitle>
           <CardDescription>
-            คาบเรียนที่ยังไม่เริ่มสอน ({upcomingTimeslots.length} คาบ)
+            เวลาสอนที่ยังไม่เริ่ม ({upcomingTimeslots.length} ช่วงเวลา)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -218,12 +203,12 @@ export default function TimeslotsPage() {
                       <span className="text-2xl">📅</span>
                     </div>
                     <div>
-                      <p className="font-medium">{getCourseTitle(timeslot.courseId)}</p>
+                      <p className="font-medium">เวลาสอน</p>
                       <p className="text-sm text-muted-foreground">
                         {formatDateTime(timeslot.dateTimeStart)} - {formatDateTime(timeslot.dateTimeEnd)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        จำนวนที่นั่งสูงสุด: {timeslot.maxSeat} คน
+                        การจอง: {getBookingCount(timeslot)} ครั้ง
                       </p>
                     </div>
                   </div>
@@ -240,8 +225,8 @@ export default function TimeslotsPage() {
               {upcomingTimeslots.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <span className="text-4xl mb-4 block">⏰</span>
-                  <p>ไม่มีคาบเรียนที่กำลังจะมาถึง</p>
-                  <p className="text-sm">สร้างคาบเรียนใหม่เพื่อเริ่มสอน</p>
+                  <p>ไม่มีเวลาสอนที่กำลังจะมาถึง</p>
+                  <p className="text-sm">เพิ่มเวลาสอนใหม่เพื่อเริ่มสอน</p>
                 </div>
               )}
             </div>
@@ -253,9 +238,9 @@ export default function TimeslotsPage() {
       {pastTimeslots.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>คาบเรียนที่ผ่านไปแล้ว</CardTitle>
+            <CardTitle>เวลาสอนที่ผ่านไปแล้ว</CardTitle>
             <CardDescription>
-              คาบเรียนที่เสร็จสิ้นแล้ว ({pastTimeslots.length} คาบ)
+              เวลาสอนที่เสร็จสิ้นแล้ว ({pastTimeslots.length} ช่วงเวลา)
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -267,12 +252,12 @@ export default function TimeslotsPage() {
                       <span className="text-2xl">✅</span>
                     </div>
                     <div>
-                      <p className="font-medium">{getCourseTitle(timeslot.courseId)}</p>
+                      <p className="font-medium">เวลาสอน</p>
                       <p className="text-sm text-muted-foreground">
                         {formatDateTime(timeslot.dateTimeStart)} - {formatDateTime(timeslot.dateTimeEnd)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        จำนวนที่นั่งสูงสุด: {timeslot.maxSeat} คน
+                        การจอง: {getBookingCount(timeslot)} ครั้ง
                       </p>
                     </div>
                   </div>
@@ -288,7 +273,7 @@ export default function TimeslotsPage() {
               
               {pastTimeslots.length > 5 && (
                 <div className="text-center py-4 text-muted-foreground">
-                  <p className="text-sm">และอีก {pastTimeslots.length - 5} คาบเรียน</p>
+                  <p className="text-sm">และอีก {pastTimeslots.length - 5} ช่วงเวลา</p>
                 </div>
               )}
             </div>

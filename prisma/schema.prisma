@@ -41,10 +41,19 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Teacher specific fields
+  profileImage    String?  // URL to profile image
+  bio             String?  // Teacher biography/description
+  specialties     String[] // Array of teaching specialties
+  experience      Int?     // Years of experience
+  education       String?  // Educational background
+  phone           String?  // Contact phone number
+
   // Relations
-  courses         Course[]        @relation("TeacherCourses")
   availabilities  Availability[]
+  timeslots       Timeslot[]
   bookings        Booking[]       @relation("StudentBookings")
+  teacherBookings Booking[]       @relation("TeacherBookings")
   auditLogs       AuditLog[]
 
   // NextAuth
@@ -52,22 +61,7 @@ model User {
   sessions        Session[]
 }
 
-model Course {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  capacity    Int       @default(1)
-  teacherId   String
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relations
-  teacher     User      @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: Cascade)
-  timeslots   Timeslot[]
-
-  @@index([teacherId])
-}
+// Course model removed - system now uses direct teacher bookings
 
 model Availability {
   id         String   @id @default(cuid())
@@ -86,18 +80,18 @@ model Availability {
 
 model Timeslot {
   id             String    @id @default(cuid())
-  courseId       String
+  teacherId      String
   dateTimeStart  DateTime
   dateTimeEnd    DateTime
-  maxSeat        Int       @default(1)
+  isAvailable    Boolean   @default(true)
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  course         Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher        User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   bookings       Booking[]
 
-  @@index([courseId])
+  @@index([teacherId])
   @@index([dateTimeStart])
   @@index([dateTimeEnd])
 }
@@ -106,16 +100,20 @@ model Booking {
   id          String         @id @default(cuid())
   timeslotId  String
   studentId   String
+  teacherId   String
   status      BookingStatus  @default(BOOKED)
+  notes       String?        // Optional notes for the lesson
 
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
   timeslot    Timeslot       @relation(fields: [timeslotId], references: [id], onDelete: Cascade)
   student     User           @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher     User           @relation("TeacherBookings", fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([timeslotId, studentId])
   @@index([studentId])
+  @@index([teacherId])
   @@index([timeslotId])
 }
 

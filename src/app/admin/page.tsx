@@ -12,6 +12,13 @@ export default function AdminHome() {
       color: 'bg-blue-500'
     },
     {
+      title: 'จัดการครู',
+      description: 'เพิ่ม แก้ไข และลบข้อมูลครู',
+      icon: '👨‍🏫',
+      href: '/admin/teachers',
+      color: 'bg-green-500'
+    },
+    {
       title: 'บันทึกการใช้งาน',
       description: 'ดูประวัติการใช้งานของระบบ',
       icon: '📋',
@@ -54,13 +61,13 @@ export default function AdminHome() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">คอร์สเรียน</CardTitle>
-            <span className="text-2xl">📚</span>
+            <CardTitle className="text-sm font-medium">ครูทั้งหมด</CardTitle>
+            <span className="text-2xl">👨‍🏫</span>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">-</div>
             <p className="text-xs text-muted-foreground">
-              คอร์สเรียนทั้งหมด
+              ครูในระบบ
             </p>
           </CardContent>
         </Card>
@@ -73,7 +80,7 @@ export default function AdminHome() {
           <CardContent>
             <div className="text-2xl font-bold">-</div>
             <p className="text-xs text-muted-foreground">
-              การจองคาบเรียนวันนี้
+              การจองเรียนวันนี้
             </p>
           </CardContent>
         </Card>
@@ -132,6 +139,12 @@ export default function AdminHome() {
               <Button variant="outline">
                 <span className="mr-2">👥</span>
                 จัดการผู้ใช้
+              </Button>
+            </Link>
+            <Link href="/admin/teachers">
+              <Button variant="outline">
+                <span className="mr-2">👨‍🏫</span>
+                จัดการครู
               </Button>
             </Link>
             <Link href="/admin/audit">
