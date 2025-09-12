@@ -10,4 +10,7 @@ if (process.env.NODE_ENV !== 'production') {
   global.prismaGlobal = prisma
 }
 
+// Export as 'db' for backward compatibility
+export const db = prisma
+
 

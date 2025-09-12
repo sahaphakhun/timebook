@@ -6,7 +6,7 @@ import { db } from '@/lib/db'
 // DELETE /api/timeslots/[id] - ลบ timeslot (เฉพาะครูเจ้าของ)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -18,9 +18,10 @@ export async function DELETE(
       )
     }
 
+    const { id } = await params
     // ตรวจสอบว่า timeslot มีอยู่และเป็นของครูคนนี้หรือไม่
     const timeslot = await db.timeslot.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         bookings: true
       }
@@ -49,7 +50,7 @@ export async function DELETE(
     }
 
     await db.timeslot.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'ลบเวลาสอนเรียบร้อยแล้ว' })

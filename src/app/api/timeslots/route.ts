@@ -11,7 +11,14 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
-    let whereClause: any = {
+    const whereClause: {
+      isAvailable: boolean
+      teacherId?: string
+      dateTimeStart?: {
+        gte: Date
+        lte: Date
+      }
+    } = {
       isAvailable: true
     }
 

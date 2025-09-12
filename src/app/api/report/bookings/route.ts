@@ -11,18 +11,18 @@ export async function GET() {
 
   const rows = await prisma.booking.findMany({
     include: {
-      timeslot: { include: { course: true } },
+      timeslot: { include: { teacher: true } },
       student: true
     },
     orderBy: { createdAt: 'desc' }
   })
 
-  const headers = ['booking_id','status','course_title','timeslot_start','timeslot_end','student_email']
+  const headers = ['booking_id','status','teacher_name','timeslot_start','timeslot_end','student_email']
   const csv = [headers.join(','),
     ...rows.map(r => [
       r.id,
       r.status,
-      r.timeslot.course.title,
+      r.timeslot.teacher.name || 'ไม่ระบุชื่อ',
       r.timeslot.dateTimeStart.toISOString(),
       r.timeslot.dateTimeEnd.toISOString(),
       r.student.email

@@ -6,12 +6,13 @@ import { db } from '@/lib/db'
 // GET /api/teachers/[id] - ดึงข้อมูลครูเฉพาะคน
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const teacher = await db.user.findUnique({
       where: {
-        id: params.id,
+        id,
         role: 'TEACHER'
       },
       select: {
@@ -56,7 +57,7 @@ export async function GET(
 // PUT /api/teachers/[id] - แก้ไขข้อมูลครู (เฉพาะแอดมิน)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -68,6 +69,7 @@ export async function PUT(
       )
     }
 
+    const { id } = await params
     const body = await request.json()
     const {
       name,
@@ -82,7 +84,7 @@ export async function PUT(
 
     // ตรวจสอบว่าครูมีอยู่หรือไม่
     const existingTeacher = await db.user.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingTeacher || existingTeacher.role !== 'TEACHER') {
@@ -107,7 +109,7 @@ export async function PUT(
     }
 
     const updatedTeacher = await db.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         email,
@@ -145,7 +147,7 @@ export async function PUT(
 // DELETE /api/teachers/[id] - ลบครู (เฉพาะแอดมิน)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -157,9 +159,10 @@ export async function DELETE(
       )
     }
 
+    const { id } = await params
     // ตรวจสอบว่าครูมีอยู่หรือไม่
     const existingTeacher = await db.user.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingTeacher || existingTeacher.role !== 'TEACHER') {
@@ -170,7 +173,7 @@ export async function DELETE(
     }
 
     await db.user.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'ลบครูเรียบร้อยแล้ว' })
