@@ -21,23 +21,46 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
-        const existing = await prisma.user.findUnique({ where: { email: credentials.email } })
-        if (!existing) {
-          const total = await prisma.user.count()
-          if (total === 0) {
-            const hashed = await hash(credentials.password, 10)
-            const created = await prisma.user.create({
-              data: { email: credentials.email, name: null, hashedPassword: hashed, role: 'ADMIN' }
-            })
-            return { id: created.id, email: created.email, name: created.name, role: created.role }
+        try {
+          if (!credentials?.email || !credentials?.password) return null
+
+          const allowSignup = process.env.ALLOW_SIGNUP === 'true'
+
+          const existing = await prisma.user.findUnique({ where: { email: credentials.email } })
+          if (!existing) {
+            const total = await prisma.user.count()
+
+            // Bootstrap: first ever user becomes ADMIN
+            if (total === 0) {
+              const hashed = await hash(credentials.password, 10)
+              const created = await prisma.user.create({
+                data: { email: credentials.email, name: null, hashedPassword: hashed, role: 'ADMIN' }
+              })
+              console.log('[auth] Created initial ADMIN user:', created.email)
+              return { id: created.id, email: created.email, name: created.name, role: created.role }
+            }
+
+            // Optional: allow signup for subsequent users when enabled
+            if (allowSignup) {
+              const hashed = await hash(credentials.password, 10)
+              const created = await prisma.user.create({
+                data: { email: credentials.email, name: null, hashedPassword: hashed, role: 'STUDENT' }
+              })
+              console.log('[auth] Created user via ALLOW_SIGNUP:', created.email)
+              return { id: created.id, email: created.email, name: created.name, role: created.role }
+            }
+
+            return null
           }
+
+          if (!existing.hashedPassword) return null
+          const valid = await compare(credentials.password, existing.hashedPassword)
+          if (!valid) return null
+          return { id: existing.id, email: existing.email, name: existing.name, role: existing.role }
+        } catch (err) {
+          console.error('[auth] authorize error', err)
           return null
         }
-        if (!existing.hashedPassword) return null
-        const valid = await compare(credentials.password, existing.hashedPassword)
-        if (!valid) return null
-        return { id: existing.id, email: existing.email, name: existing.name, role: existing.role }
       }
     })
   ],
@@ -58,4 +81,3 @@ export const authOptions: NextAuthOptions = {
   },
   pages: { signIn: '/login' }
 }
-
